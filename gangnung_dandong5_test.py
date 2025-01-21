@@ -73,8 +73,8 @@ areaHouse = lengthHouse * widthHouse
 surfaceHouse = (widthHouse * heightHouse + lengthHouse * heightHouse) * 2
 volumeHouse = areaHouse * heightHouse * nFloor
 mHouse = areaHouse * heightHouse * nFloor * rhoAir
-ht = 5.7 # 열 관류율 [㎉/㎡·h·℃]
-hs = 0.244 # 지표면 전열 계수 [㎉/㎡·h·℃]
+ht = 5.7 # 열 관류율
+hs = 0.244 # 지표면 전열 계수
 fr = 0.3 # 보온 피복재의 열 절감율
 hv = 0.2
 Agh = 1365.66
@@ -107,7 +107,7 @@ for k in range(len(hour)):
 for k in range(len(hour)):
     # 1. 먼저 현재 시간의 실내온도 계산 (k > 0일 때)
     if k > 0:
-        dT = (qTotalHouse[k-1] * 0.001163) / (mHouse * cAir)  # 온도 변화
+        dT = (qTotalHouse[k-1]) / (mHouse * cAir * 1000)  # 온도 변화
         Troom[k] = Troom[k-1] + dT  # 새로운 실내온도
 
     # 2. 계산된 실내온도로 열부하 계산
@@ -119,17 +119,17 @@ for k in range(len(hour)):
     qFrontBack[k] = (Tsolair2[k] - Troom[k]) * ht * areaFrontBack * (1 - fr)
 
     # 온실에 유입, 유출되는 열 에너지 총합
-    qTotalHouse[k] = qRoof[k] + qFloor[k] + qSideWall[k] + qVent[k] + qFrontBack[k] + qRad[k] # kcal/h
+    qTotalHouse[k] = qRoof[k] + qFloor[k] + qSideWall[k] + qVent[k] + qFrontBack[k] + qRad[k] + qHeating[k] - qCooling[k]
 
     # 난방/냉방 부하 계산
     if Troom[k] < Tset_heating:
         # 난방 필요
-        qHeating[k] = ((Tset_heating - Troom[k]) * (mHouse * cAir * 1000)) # W
+        qHeating[k] = ((Tset_heating - Troom[k]) * (mHouse * cAir * 1000))
         qCooling[k] = 0
         mode[k] = 1  # 난방 모드
     elif Troom[k] > Tset_cooling:
         # 냉방 필요
-        qCooling[k] = ((Troom[k] - Tset_cooling) * (mHouse * cAir * 1000))  # W
+        qCooling[k] = ((Troom[k] - Tset_cooling) * (mHouse * cAir * 1000))
         qHeating[k] = 0
         mode[k] = 2  # 냉방 모드
     else:
